@@ -81,26 +81,3 @@ jobs:
           path: |
             models/model.pkl
             outputs/metrics.json
-
-  deploy:
-    needs: train
-    runs-on: ubuntu-latest
-    if: ${{ secrets.VM_HOST != '' }}
-    steps:
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/mlops_deploy_key
-          chmod 600 ~/.ssh/mlops_deploy_key
-          ssh-keyscan -H "${{ secrets.VM_HOST }}" >> ~/.ssh/known_hosts
-
-      - name: Restart service on VM
-        run: |
-          ssh -i ~/.ssh/mlops_deploy_key \
-            ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} \
-            "sudo systemctl restart mlops-serve && sudo systemctl is-active --quiet mlops-serve"
-
-      - name: Health check
-        run: |
-          sleep 10
-          curl --fail http://${{ secrets.VM_HOST }}:8000/health
