@@ -1,3 +1,2 @@
-[remote "gcs-storage"]
-    url = gs://YOUR_BUCKET_NAME
-    cloud = gcs
+['remote "myremote"']
+    url = gs://day21-mlops-121-495009/dvc
