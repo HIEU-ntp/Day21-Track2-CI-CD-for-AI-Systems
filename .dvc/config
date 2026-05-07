@@ -1,2 +1,4 @@
-['remote "myremote"']
-    url = gs://day21-mlops-121-495009/dvc
+[core]
+	remote = myremote
+[remote "myremote"]
+	url = gs://day21-mlops-121-495009/dvc

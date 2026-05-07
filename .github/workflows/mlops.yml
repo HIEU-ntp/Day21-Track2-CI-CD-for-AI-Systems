@@ -3,6 +3,11 @@ name: mlops
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'data/**.dvc'
+      - 'src/**.py'
+      - 'params.yaml'
+      - 'generate_data.py'
   workflow_dispatch: {}
 
 jobs:
@@ -19,9 +24,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Run unit tests
-        run: pytest -q
+        run: pytest -v
 
-  train_and_eval:
+  train:
     needs: test
     runs-on: ubuntu-latest
     env:
@@ -39,39 +44,57 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install dvc[gs]
+      - name: Authenticate to GCP
+        id: auth
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Generate data
-        run: python generate_data.py
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT }}
+
+      - name: Pull data with DVC
+        run: |
+          dvc pull -v
 
       - name: Train model
         run: python src/train.py
 
       - name: Check evaluation threshold
-        id: eval
         run: python src/check_accuracy.py
 
-      - name: Authenticate to GCP
-        if: success()
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Configure gcloud project
-        if: success()
-        run: |
-          gcloud config set project ${{ secrets.GCP_PROJECT }}
-
       - name: Upload model to GCS
-        if: success()
         run: |
-          mkdir -p /tmp/artifacts
           gsutil cp models/model.pkl gs://${{ secrets.GCS_BUCKET }}/models/latest/model.pkl
 
       - name: Upload artifacts
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: model-and-metrics
           path: |
             models/model.pkl
             outputs/metrics.json
+
+  deploy:
+    needs: train
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/mlops_deploy_key
+          chmod 600 ~/.ssh/mlops_deploy_key
+          ssh-keyscan -H "${{ secrets.VM_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Restart service on VM
+        run: |
+          ssh -i ~/.ssh/mlops_deploy_key \
+            ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} \
+            "sudo systemctl restart mlops-serve && sudo systemctl is-active --quiet mlops-serve"
+
+      - name: Health check
+        run: |
+          sleep 10
+          curl --fail http://${{ secrets.VM_HOST }}:8000/health
