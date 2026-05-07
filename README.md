@@ -3,6 +3,8 @@
 Course: AIInAction - VinUni
 Buổi: Day 21 - CI/CD cho AI Systems
 
+Dự án GCP của lab: `my-project-day-12`
+
 
 ---
 
@@ -126,7 +128,7 @@ train_phase2.csv : 2998 mẫu
 Cấu trúc này là kết quả cuối cùng sau khi hoàn thành cả ba bước:
 
 ```
-mlops-lab/
+my-project-day-12/
 ├── .github/
 │   └── workflows/
 │       └── mlops.yml          <- Pipeline CI/CD (Bước 2)
@@ -159,7 +161,7 @@ mlops-lab/
 ```bash
 # 1. Clone hoặc khởi tạo repo của bạn
 git clone <URL_REPO_CUA_BAN>
-cd mlops-lab
+cd my-project-day-12
 
 # 2. Tạo và kích hoạt môi trường ảo
 python -m venv .venv
@@ -218,6 +220,35 @@ pyyaml==6.0.1
 | 3 | Huấn luyện liên tục khi có dữ liệu mới | tasks/buoc-3.md |
 
 Bắt đầu từ [Bước 1](tasks/buoc-1.md).
+
+---
+
+## Checklist Nộp Bài
+
+Trước khi nộp, hãy kiểm tra các mục sau:
+
+1. Repo GitHub công khai đang dùng đúng tên dự án `my-project-day-12`.
+2. `README.md` đã mô tả đầy đủ Bước 1, Bước 2, và Bước 3.
+3. `.github/workflows/mlops.yml` đã được commit và push lên `main`.
+4. `.dvc/config` đã trỏ đúng remote GCS của lab.
+5. Dữ liệu đã được version hóa bằng DVC và đã push lên cloud storage.
+6. GitHub Actions có ít nhất một run thành công cho pipeline.
+7. Bước 3 đã được kích hoạt bởi commit dữ liệu mới.
+8. Ảnh chụp màn hình đã sẵn sàng để nộp:
+      - MLflow UI với ít nhất 3 thí nghiệm.
+      - GitHub Actions cho các job Test, Train, Eval, Deploy.
+      - `curl /health` và `curl /predict` trên VM.
+      - Cloud Storage Console hiển thị data/model đã upload.
+
+## Mẫu Tóm Tắt Nộp Bài
+
+Bạn có thể dùng đoạn ngắn sau trong báo cáo cuối cùng:
+
+- Dự án: `my-project-day-12`
+- Cloud project: `project-121-495009`
+- Kết quả Bước 1: đã chạy ít nhất 3 thí nghiệm MLflow và chọn bộ siêu tham số tốt nhất.
+- Kết quả Bước 2: dữ liệu được quản lý bằng DVC, pipeline GitHub Actions tự động train, eval, và deploy.
+- Kết quả Bước 3: commit dữ liệu mới đã kích hoạt pipeline tự động và triển khai lại mô hình.
 
 ---
 
