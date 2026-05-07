@@ -48,6 +48,7 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v1
         with:
+          create_credentials_file: true
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up gcloud
@@ -55,9 +56,12 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT }}
 
-      - name: Pull data with DVC
+      - name: Generate and version data
         run: |
-          dvc pull -v
+          python generate_data.py
+          dvc commit data/train_phase1.csv.dvc data/eval.csv.dvc data/train_phase2.csv.dvc
+          export GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}"
+          dvc push -v
 
       - name: Train model
         run: python src/train.py
@@ -67,6 +71,7 @@ jobs:
 
       - name: Upload model to GCS
         run: |
+          export GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}"
           gsutil cp models/model.pkl gs://${{ secrets.GCS_BUCKET }}/models/latest/model.pkl
 
       - name: Upload artifacts
