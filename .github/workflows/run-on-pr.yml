@@ -27,18 +27,7 @@ jobs:
       - name: Train model
         run: python src/train.py
       - name: Check accuracy
-        run: |
-          python - <<'PY'
-import json,sys
-with open('outputs/metrics.json') as f:
-    m=json.load(f)
-acc=m.get('accuracy',0)
-print('accuracy=',acc)
-if acc < 0.70:
-    print('Accuracy below threshold, failing')
-    sys.exit(1)
-print('OK')
-PY
+        run: python src/check_accuracy.py
       - name: Authenticate to GCP
         if: success()
         uses: google-github-actions/auth@v1
