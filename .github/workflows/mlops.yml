@@ -59,7 +59,7 @@ jobs:
       - name: Generate and version data
         run: |
           python generate_data.py
-          dvc commit data/train_phase1.csv.dvc data/eval.csv.dvc data/train_phase2.csv.dvc
+          dvc commit --force data/train_phase1.csv.dvc data/eval.csv.dvc data/train_phase2.csv.dvc
           export GOOGLE_APPLICATION_CREDENTIALS="${{ steps.auth.outputs.credentials_file_path }}"
           dvc push -v
 
