@@ -85,6 +85,7 @@ jobs:
   deploy:
     needs: train
     runs-on: ubuntu-latest
+    if: ${{ secrets.VM_HOST != '' }}
     steps:
       - name: Set up SSH
         run: |
