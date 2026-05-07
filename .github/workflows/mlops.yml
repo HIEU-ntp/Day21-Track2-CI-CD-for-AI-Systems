@@ -48,19 +48,7 @@ jobs:
 
       - name: Check evaluation threshold
         id: eval
-        run: |
-          python - <<'PY'
-import json,sys
-with open('outputs/metrics.json') as f:
-    m=json.load(f)
-acc=m.get('accuracy',0)
-print('accuracy=',acc)
-threshold=0.70
-if acc < threshold:
-    print('Accuracy below threshold, failing')
-    sys.exit(1)
-print('OK')
-PY
+        run: python src/check_accuracy.py
 
       - name: Authenticate to GCP
         if: success()
